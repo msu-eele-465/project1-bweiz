@@ -77,16 +77,42 @@
 
 RESET       mov.w   #__STACK_END,SP         ; Initialize stack pointer
 StopWDT     mov.w   #WDTPW+WDTHOLD,&WDTCTL  ; Stop WDT
+
+
 SetupP1     bic.b   #BIT0,&P1OUT            ; Clear P1.0 output
             bis.b   #BIT0,&P1DIR            ; P1.0 output
+
+Setup P6    bic.b   #BIT6,&P6OUT           ; Clear P6.6 output
+            bis.b   #BIT6,&P6DIR           ; P6.6 as OUTPUT
+
+
             bic.w   #LOCKLPM5,&PM5CTL0       ; Unlock I/O pins
 
-Mainloop    xor.b   #BIT0,&P1OUT            ; Toggle P1.0 every 0.1s
-Wait        mov.w   #50000,R15              ; Delay to R15
-L1          dec.w   R15                     ; Decrement R15
-            jnz     L1                      ; Delay over?
-            jmp     Mainloop                ; Again
+Main:
+            xor.b   #BIT0,&P1OUT             ; Toggle P1.0 (RED LED)
+            mov.w   #10,R15                  ; Delay to R15
+
+OuterLoop:
+            call    #Delay
+            dec     R15
+            jnz     OuterLoop
+
+            jmp     Main
             NOP
+
+;------------------------------------------------------------------------------
+;           Subroutines
+;------------------------------------------------------------------------------
+
+Delay:      
+            mov.w   #50000, R14
+
+InnerLoop: 
+            dec     R14
+            jnz     InnerLoop
+
+            ret
+
 ;------------------------------------------------------------------------------
 ;           Interrupt Vectors
 ;------------------------------------------------------------------------------
